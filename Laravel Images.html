@@ -1,0 +1,141 @@
+    public function saveTransportInfo(Request $request)
+    {
+        $request->validate([
+            'transport_name' => 'required',
+            'price_per_day' => 'required|numeric',
+            'pick_up' => 'required|min:3',
+            'drop_off' => 'required|min:3',
+            'vehicle_condition' => 'required',
+            'total_seat' => 'required|numeric',
+            'transport_details' => 'required|min:10',
+            'transport_term_condition' => 'required|min:10',
+            'transport_additional_service' => 'required|min:10',
+            'transport_image' => 'required',
+            'sub_image' => 'required',
+
+
+        ]);
+
+        $transportImage = $request->file('transport_image');
+        $uniqueName = substr(md5(time()),'0','10');
+        $uniqueImageName = $uniqueName.'.'.$transportImage->getClientOriginalExtension();
+        $directory = 'transport-image/main-image/';
+        $imageUrl = $directory.$uniqueImageName;
+        // $transportImage->move($directory.$uniqueImageName);
+        Image::make($transportImage)->save($imageUrl);
+
+        $transport = new Transport();
+        $transport->transport_name = $request->transport_name;
+        $transport->price_per_day = $request->price_per_day;
+        $transport->pick_up = $request->pick_up;
+        $transport->drop_off = $request->drop_off;
+        $transport->vehicle_condition = $request->vehicle_condition;
+        $transport->total_seat = $request->total_seat;
+        $transport->transport_details = $request->transport_details;
+        $transport->transport_term_condition = $request->transport_term_condition;
+        $transport->transport_additional_service = $request->transport_additional_service;
+        $transport->transport_image = $imageUrl;
+        $transport->save();
+        $transportId = $transport->id; // when $transport->save() work, it create a new id and row in database and this imidiate row id take it
+
+        $subImages = $request->file('sub_image');
+        foreach ($subImages as $subImage) {
+            $uniqueSubName = substr(md5(bcrypt(random_int(1,1000000))),'0','10');
+            $subUniqueImageName =$uniqueSubName.'.'.$subImage->getClientOriginalExtension();
+            $subImagedirectory = 'transport-image/transport-images/';
+            $subImageUrl = $subImagedirectory.$subUniqueImageName;
+            Image::make($subImage)->save($subImageUrl);
+
+            $subImage = new TransportSubImage();
+            $subImage->transport_id = $transportId;
+            $subImage->sub_image = $subImageUrl;
+            $subImage->save();
+        }
+
+        return redirect(route('manage-transport'))->with('message', 'Tour info create successfully');
+    }
+
+
+
+
+
+    public function manageTransportInfo()
+    {
+         $transports = Transport::orderBy('id', 'desc')->get();
+        return view('admin.transport.manage-transport',compact('transports'));
+    }
+
+    public function showTransportInfo($id)
+    {
+
+
+
+        $transportSubImages = TransportSubImage::where('transport_id',$id)->get();
+
+
+        return view('admin.transport.transport-Info.manage-transport-info',compact('transportSubImages','id'));
+    }
+
+
+    public function deleteTransportSubImage($id, $imageId)
+    {
+
+        $deleteTransportSubImage = TransportSubImage::find($imageId);
+        @unlink($deleteTransportSubImage->sub_image);
+
+        $deleteTransportSubImage->delete();
+        return redirect('/transport/'.$id.'/transport-info')->with('destroy', 'Transport Sub-Image  deleted successfully');
+    }
+
+
+    public function showSubImageForm($id)
+    {
+
+        return view('admin.transport.transport-info.add-sub-Image',compact('id'));
+    }
+
+
+    public function saveTransportSubImage(Request $request,$id)
+    {
+
+        $subImages = $request->file('sub_image');
+        foreach ($subImages as $subImage) {
+            $uniqueSubName = substr(md5(bcrypt(random_int(1,1000000))),'0','10');
+            $subUniqueImageName =$uniqueSubName.'.'.$subImage->getClientOriginalExtension();
+            $subImagedirectory = 'tour-image/sub-images/';
+            $subImageUrl = $subImagedirectory.$subUniqueImageName;
+            Image::make($subImage)->save($subImageUrl);
+
+            $subImage = new TransportSubImage();
+            $subImage->transport_id = $id;
+            $subImage->sub_image = $subImageUrl;
+            $subImage->save();
+        }
+        return redirect('/transport/'.$id.'/transport-info')->with('message', 'Transport Sub-Image Add successfully');
+
+    }
+
+
+
+    public function deleteTransportInfo($id)
+    {
+
+
+        $deleteTransport = Transport::find($id);
+        @unlink($deleteTransport->transport_image);
+        $deleteTransport->delete();
+
+
+
+
+        $subImages = TransportSubImage::where('transport_sub_images.transport_id', '=', $id)->get();
+
+        foreach ($subImages as $subImage){
+            @unlink($subImage->sub_image);
+            $subImage->delete();
+        }
+
+
+        return back()->with('destroy','Transport Delete Successful');
+    }
+

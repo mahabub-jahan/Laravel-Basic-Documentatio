@@ -1,0 +1,91 @@
+================== ***Query Builder*** ====================
+
+# Insert:
+
+	public function saveCategoryInfo(Request $request)
+	    {
+	         \DB::table('categories')->insert([
+            'category_name' => $request->category_name,
+            'category_description'=> $request->category_description,
+            'publication_status' => $request->publication_status,
+            'created_at' => now(),
+            'updated_at' => now()
+
+        ]);
+
+	    }
+
+
+	    another:
+	   
+	OR:
+
+	
+
+
+
+-------------------------------------------------------------------------
+# Update:
+	- Updating JSON Columns
+		DB::table('users')
+            ->where('id', 1)
+            ->update(['options->enabled' => true]);
+
+    or:
+
+	DB::table('users')
+        ->where('id', 1)
+        ->update(['votes' => 1]);
+
+
+
+	or:
+	- Increment & Decrement
+		DB::table('users')->increment('votes');
+
+		DB::table('users')->increment('votes', 5);
+
+		DB::table('users')->decrement('votes');
+
+		DB::table('users')->decrement('votes', 5);
+		or: 
+		DB::table('users')->increment('votes', 1, ['name' => 'John']);
+    
+
+
+------------------------------------------------------------------------------------
+# Delete:
+	DB::table('users')->delete();
+
+	DB::table('users')->where('votes', '>', 100)->delete();
+
+		
+
+
+-----------------------------------------------------------------------------------
+# Selects
+	- $users = DB::table('users')->select('name', 'email as user_email')->get();
+	-$users = DB::table('users')->distinct()->get();
+
+	- Raw Expressions
+			$users = DB::table('users')
+                 ->select(DB::raw('count(*) as user_count, status'))
+                 ->where('status', '<>', 1)
+                 ->groupBy('status')
+                 ->get();
+
+
+
+-------------------------------------------------------------------------
+# Joins:
+- $users = DB::table('users')
+            ->join('contacts', 'users.id', '=', 'contacts.user_id')
+            ->join('orders', 'users.id', '=', 'orders.user_id')
+            ->select('users.*', 'contacts.phone', 'orders.price')
+            ->get();
+
+
+- Left Join Clause:
+$users = DB::table('users')
+            ->leftJoin('posts', 'users.id', '=', 'posts.user_id')
+            ->get();

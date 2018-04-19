@@ -1,0 +1,109 @@
+================== ***Elequent*** ====================
+
+# Insert:
+
+	public function store(Request $request)
+	    {
+	        // Validate the request...
+
+	        $flight = new Flight;
+
+	        $flight->name = $request->name;
+
+	        $flight->save();
+	    }
+
+
+	    another:
+	    public function saveCategoryInfo(Request $request)
+	    {
+	         $category = new Category();
+	         $category->category_name = $request->category_name;
+	         $category->category_description = $request->category_description;
+	         $category->publication_status = $request->publication_status;
+	         $category->save();
+	     }
+	OR:
+
+	Category::create($request->all());
+
+
+
+-------------------------------------------------------------------------
+# Update:
+
+	$flight = App\Flight::find(1);
+
+	$flight->name = 'New Flight Name';
+
+	$flight->save();
+
+	or:
+	
+    public function updateCategoryInfo(Request $request, $id){
+        $categoryById = Category::find($id);
+        $categoryById->category_name = $request->category_name;
+        $categoryById->category_description = $request->category_description;
+        $categoryById->publication_status = $request->publication_status;
+        $categoryById->save();
+        return redirect('/category/manage-category')->with('message','Category Update Successfully');
+    }
+
+	or:
+	Mass Updates:
+	App\Flight::where('active', 1)
+          ->where('destination', 'San Diego')
+          ->update(['delayed' => 1]);
+
+------------------------------------------------------------------------------------
+# Delete:
+	$flight = App\Flight::find(1);
+
+	$flight->delete();
+
+		- Deleting An Existing Model By Key
+			App\Flight::destroy(1);
+
+			App\Flight::destroy([1, 2, 3]);
+
+			App\Flight::destroy(1, 2, 3);
+
+		- Deleting Models By Query
+			$deletedRows = App\Flight::where('active', 0)->delete();
+
+
+-----------------------------------------------------------------------------------
+# Others
+	-  $categories = Category::orderBy('id', 'desc')->get();
+		or: 
+		$categories = Category::all();
+
+--------------------------------------------------------------------------
+
+
+
+
+
+
+# Adding Additional Constraints
+
+	$flights = App\Flight::where('active', 1)
+	               ->orderBy('name', 'desc')
+	               ->take(10)
+	               ->get();
+
+# Retrieving Single Models / Aggregates
+
+	// Retrieve a model by its primary key...
+	$flight = App\Flight::find(1);
+
+	// Retrieve the first model matching the query constraints...
+	$flight = App\Flight::where('active', 1)->first();
+
+
+# Retrieving Aggregates
+
+	$count = App\Flight::where('active', 1)->count();
+
+	$max = App\Flight::where('active', 1)->max('price');
+
